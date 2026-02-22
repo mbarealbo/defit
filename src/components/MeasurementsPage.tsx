@@ -50,7 +50,17 @@ function CustomTooltip({ active, payload, label, unit }: CustomTooltipProps) {
 export default function MeasurementsPage() {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showWizard, setShowWizard] = useState(false);
+  const [showWizard, setShowWizard] = useState(() => sessionStorage.getItem('measureWizardOpen') === '1');
+
+  function openWizard() {
+    sessionStorage.setItem('measureWizardOpen', '1');
+    setShowWizard(true);
+  }
+
+  function closeWizard() {
+    sessionStorage.removeItem('measureWizardOpen');
+    setShowWizard(false);
+  }
   const [selectedMetric, setSelectedMetric] = useState<MeasurementKey>('peso');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -101,7 +111,7 @@ export default function MeasurementsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowWizard(true)}
+          onClick={() => openWizard()}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -260,7 +270,7 @@ export default function MeasurementsPage() {
             </p>
           </div>
           <button
-            onClick={() => setShowWizard(true)}
+            onClick={() => openWizard()}
             className="flex items-center gap-2 px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black text-sm font-semibold transition-colors"
           >
             <Plus className="w-4 h-4" />
@@ -272,9 +282,9 @@ export default function MeasurementsPage() {
       {showWizard && (
         <MeasurementWizard
           latestMeasurement={lastEntry}
-          onClose={() => setShowWizard(false)}
+          onClose={closeWizard}
           onSaved={(toastMsg) => {
-            setShowWizard(false);
+            closeWizard();
             fetchMeasurements();
             if (toastMsg) showToast(toastMsg);
           }}
