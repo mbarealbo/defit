@@ -41,7 +41,8 @@ Deno.serve(async (req: Request) => {
 REGOLE:
 1. Se il tipo è 'food', analizza il testo o la foto del cibo. Restituisci le calorie stimate e i macro (carbs, protein, fat). Se la quantità è ambigua (es. 'un piatto di pasta' senza peso), imposta status su 'clarification_needed' e fai una domanda all'utente.
 2. Se il tipo è 'workout', analizza il testo o la foto (es. display tapis roulant) per estrarre ESCLUSIVAMENTE le calorie bruciate. Ignora i macro (impostali a 0).
-3. Rispondi SEMPRE E SOLO in formato JSON con questa struttura:
+3. IMPORTANTE: Devi restituire SOLO numeri interi (senza decimali) per kcal, carbs, protein e fat. Arrotonda qualsiasi decimale al numero intero più vicino (es. 0.2 diventa 0, 1.8 diventa 2).
+4. Rispondi SEMPRE E SOLO in formato JSON con questa struttura:
 {
   "status": "success" | "clarification_needed",
   "message": "eventuale messaggio o domanda per l'utente",
@@ -122,6 +123,19 @@ DEVI restituire "status": "success", compilare l'array "items" con i valori calc
     }
 
     const parsed = JSON.parse(content);
+
+    if (Array.isArray(parsed.items)) {
+      parsed.items = parsed.items.map((item: Record<string, unknown>) => ({
+        ...item,
+        kcal: Math.round(Number(item.kcal) || 0),
+        carbs: Math.round(Number(item.carbs) || 0),
+        protein: Math.round(Number(item.protein) || 0),
+        fat: Math.round(Number(item.fat) || 0),
+      }));
+    }
+    if (parsed.total_kcal !== undefined) {
+      parsed.total_kcal = Math.round(Number(parsed.total_kcal) || 0);
+    }
 
     return new Response(JSON.stringify(parsed), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -50,7 +50,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const systemPrompt = `Sei un nutrizionista AI esperto. L'utente sta modificando una voce alimentare esistente. Riceverai i valori nutrizionali attuali e la modifica richiesta dall'utente. DEVI ricalcolare le nuove calorie totali esatte, carboidrati, proteine e grassi combinando i dati esistenti con la nuova richiesta. Restituisci SOLO un oggetto JSON con i campi aggiornati: name (aggiornalo per riflettere le modifiche, es. 'Pasta + Olio'), kcal, carbs, protein, fat. Non aggiungere testo al di fuori del JSON.`;
+    const systemPrompt = `Sei un nutrizionista AI esperto. L'utente sta modificando una voce alimentare esistente. Riceverai i valori nutrizionali attuali e la modifica richiesta dall'utente. DEVI ricalcolare le nuove calorie totali esatte, carboidrati, proteine e grassi combinando i dati esistenti con la nuova richiesta. Restituisci SOLO un oggetto JSON con i campi aggiornati: name (aggiornalo per riflettere le modifiche, es. 'Pasta + Olio'), kcal, carbs, protein, fat. Non aggiungere testo al di fuori del JSON. IMPORTANTE: Devi restituire SOLO numeri interi (senza decimali) per kcal, carbs, protein e fat. Arrotonda qualsiasi decimale al numero intero più vicino (es. 0.2 diventa 0, 1.8 diventa 2).`;
 
     const userMessage = `Voce attuale:
 - Nome: ${currentEntry.name}
@@ -102,7 +102,14 @@ Modifica richiesta: ${userPrompt}`;
       );
     }
 
-    const refined = JSON.parse(content) as RefinedEntry;
+    const raw = JSON.parse(content) as RefinedEntry;
+    const refined: RefinedEntry = {
+      name: raw.name,
+      kcal: Math.round(Number(raw.kcal) || 0),
+      carbs: Math.round(Number(raw.carbs) || 0),
+      protein: Math.round(Number(raw.protein) || 0),
+      fat: Math.round(Number(raw.fat) || 0),
+    };
 
     return new Response(JSON.stringify(refined), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

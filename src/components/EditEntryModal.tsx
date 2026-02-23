@@ -99,10 +99,10 @@ export default function EditEntryModal({ entry, onClose }: Props) {
   }
 
   async function handleSave() {
-    const kcal = Math.max(0, parseInt(form.kcal) || 0);
-    const carbs = Math.max(0, parseInt(form.carbs) || 0);
-    const protein = Math.max(0, parseInt(form.protein) || 0);
-    const fat = Math.max(0, parseInt(form.fat) || 0);
+    const kcal = Math.max(0, Math.round(Number(form.kcal) || 0));
+    const carbs = Math.max(0, Math.round(Number(form.carbs) || 0));
+    const protein = Math.max(0, Math.round(Number(form.protein) || 0));
+    const fat = Math.max(0, Math.round(Number(form.fat) || 0));
     const name = form.name.trim() || entry.name;
 
     setSaving(true);
