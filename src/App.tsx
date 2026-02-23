@@ -73,7 +73,7 @@ export default function App() {
 
       <main
         className="flex-1 overflow-y-auto"
-        style={{ paddingBottom: tab === 'home' ? '13rem' : '4.5rem' }}
+        style={{ paddingBottom: tab === 'home' ? 'calc(16rem + env(safe-area-inset-bottom, 0px))' : 'calc(4.5rem + env(safe-area-inset-bottom, 0px))' }}
       >
         {tab === 'home' && (
           <>
