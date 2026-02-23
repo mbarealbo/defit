@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-zinc-950 text-white;
+    overscroll-behavior: none;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@layer utilities {
+  .pt-safe {
+    padding-top: max(0.75rem, var(--sat));
+  }
+
+  .pb-safe {
+    padding-bottom: max(0.75rem, var(--sab));
+  }
+
+  .bg-gradient-radial {
+    background: radial-gradient(ellipse at center top, var(--tw-gradient-from), var(--tw-gradient-to));
+  }
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
