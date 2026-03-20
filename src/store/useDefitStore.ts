@@ -70,6 +70,7 @@ interface DefitState {
   fetchToday: () => Promise<void>;
   fetchMonth: (year: number, month: number) => Promise<void>;
   addEntries: (type: EntryType, items: AnalysisItem[]) => Promise<void>;
+  addManualEntry: (type: EntryType, item: AnalysisItem, category?: MealCategory) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   updateEntryCategory: (id: string, category: MealCategory) => Promise<void>;
   updateEntry: (id: string, fields: { name: string; kcal: number; carbs: number; protein: number; fat: number; meal_category?: MealCategory }) => Promise<void>;
@@ -254,6 +255,51 @@ export const useDefitStore = create<DefitState>((set, get) => ({
     }));
 
     const { data, error } = await supabase.from('entries').insert(rows).select();
+    if (error) throw new Error(error.message);
+
+    const newEntries = (data ?? []) as Entry[];
+    const existing = get().records[date]?.entries ?? [];
+    const allEntries = [...existing, ...newEntries];
+
+    const activeSnapshot: DailySnapshot = {
+      tdee_snapshot: tdee,
+      min_deficit_snapshot: minDeficit,
+      max_deficit_snapshot: maxDeficit,
+    };
+
+    const record = calcRecord(allEntries, tdee, activeSnapshot);
+
+    set((s) => ({
+      records: { ...s.records, [date]: record },
+      snapshots: { ...s.snapshots, [date]: activeSnapshot },
+    }));
+  },
+
+  addManualEntry: async (type, item, category) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const date = todayStr();
+    const timeLabel = getCurrentTimeLabel();
+    const mealCategory = type === 'food' ? (category ?? getMealCategory(timeLabel)) : null;
+    const { tdee, minDeficit, maxDeficit } = get();
+
+    await upsertSnapshot(user.id, date, tdee, minDeficit, maxDeficit);
+
+    const row = {
+      user_id: user.id,
+      type,
+      name: item.name,
+      kcal: item.kcal,
+      carbs: item.carbs,
+      protein: item.protein,
+      fat: item.fat,
+      entry_date: date,
+      time_label: timeLabel,
+      meal_category: mealCategory,
+    };
+
+    const { data, error } = await supabase.from('entries').insert([row]).select();
     if (error) throw new Error(error.message);
 
     const newEntries = (data ?? []) as Entry[];

@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
-import { Camera, Send, Loader2, Utensils, Dumbbell, X, MessageCircle, RotateCcw } from 'lucide-react';
+import { Camera, Send, Loader2, Utensils, Dumbbell, X, MessageCircle, RotateCcw, PenLine } from 'lucide-react';
 import { analyzeEntry, imageToBase64 } from '../lib/api';
 import { useDefitStore } from '../store/useDefitStore';
-import type { EntryType } from '../types';
+import { MEAL_CATEGORY_ORDER, MEAL_CATEGORY_LABELS } from '../lib/mealCategory';
+import type { EntryType, MealCategory } from '../types';
 
 interface PendingContext {
   text: string;
@@ -18,8 +19,11 @@ export default function InputArea() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingContext, setPendingContext] = useState<PendingContext | null>(null);
   const [aiQuestion, setAiQuestion] = useState<string | null>(null);
+  const [manualMode, setManualMode] = useState(false);
+  const [manualForm, setManualForm] = useState({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' as MealCategory | '' });
   const fileRef = useRef<HTMLInputElement>(null);
   const addEntries = useDefitStore((s) => s.addEntries);
+  const addManualEntry = useDefitStore((s) => s.addManualEntry);
 
   const isAwaitingReply = pendingContext !== null;
 
@@ -128,6 +132,78 @@ export default function InputArea() {
           </div>
         )}
 
+        {manualMode && (
+          <div className="mx-4 mb-3 p-4 rounded-2xl bg-white/[0.04] border border-white/[0.08]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Inserimento manuale</span>
+              <button onClick={() => setManualMode(false)} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
+                <X className="w-3.5 h-3.5 text-zinc-500" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <input
+                type="text"
+                value={manualForm.name}
+                onChange={(e) => setManualForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Nome alimento"
+                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20"
+              />
+              <div className="grid grid-cols-4 gap-2">
+                <div>
+                  <label className="text-[10px] text-zinc-600 mb-0.5 block">kcal</label>
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={manualForm.kcal} onChange={(e) => setManualForm((f) => ({ ...f, kcal: e.target.value }))} placeholder="0" className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-2 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-sky-400/70 mb-0.5 block">C</label>
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={manualForm.carbs} onChange={(e) => setManualForm((f) => ({ ...f, carbs: e.target.value }))} placeholder="0" className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-2 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-amber-400/70 mb-0.5 block">P</label>
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={manualForm.protein} onChange={(e) => setManualForm((f) => ({ ...f, protein: e.target.value }))} placeholder="0" className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-2 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20" />
+                </div>
+                <div>
+                  <label className="text-[10px] text-pink-400/70 mb-0.5 block">G</label>
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={manualForm.fat} onChange={(e) => setManualForm((f) => ({ ...f, fat: e.target.value }))} placeholder="0" className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-2 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20" />
+                </div>
+              </div>
+              <select
+                value={manualForm.meal_category}
+                onChange={(e) => setManualForm((f) => ({ ...f, meal_category: e.target.value as MealCategory }))}
+                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 appearance-none"
+              >
+                <option value="" className="bg-zinc-900">Pasto (automatico)</option>
+                {MEAL_CATEGORY_ORDER.map((cat) => (
+                  <option key={cat} value={cat} className="bg-zinc-900">{MEAL_CATEGORY_LABELS[cat]}</option>
+                ))}
+              </select>
+              <button
+                onClick={async () => {
+                  const name = manualForm.name.trim();
+                  const kcal = Math.max(0, parseInt(manualForm.kcal) || 0);
+                  if (!name || kcal === 0) return;
+                  const carbs = Math.max(0, parseInt(manualForm.carbs) || 0);
+                  const protein = Math.max(0, parseInt(manualForm.protein) || 0);
+                  const fat = Math.max(0, parseInt(manualForm.fat) || 0);
+                  const category = manualForm.meal_category || undefined;
+                  setSending(true);
+                  try {
+                    await addManualEntry(type, { name, kcal, carbs, protein, fat }, category);
+                    setManualForm({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' });
+                    setManualMode(false);
+                  } finally {
+                    setSending(false);
+                  }
+                }}
+                disabled={sending || !manualForm.name.trim() || !(parseInt(manualForm.kcal) > 0)}
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-30"
+                style={{ background: type === 'food' ? '#f43f5e' : '#10b981' }}
+              >
+                {sending ? 'Salvataggio...' : 'Aggiungi'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="mx-4 mb-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20">
             <p className="text-xs text-red-300 leading-relaxed">{errorMessage}</p>
@@ -167,6 +243,18 @@ export default function InputArea() {
                 label="Workout"
                 activeColor="bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
               />
+              <div className="w-px h-4 bg-white/[0.08]" />
+              <button
+                onClick={() => setManualMode((m) => !m)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 ${
+                  manualMode
+                    ? 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30'
+                    : 'bg-transparent text-zinc-500 border-white/[0.06] hover:border-white/10'
+                }`}
+              >
+                <PenLine className="w-3.5 h-3.5" />
+                Manuale
+              </button>
             </div>
           )}
 
