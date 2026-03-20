@@ -2,7 +2,8 @@ import { useState, useEffect, useRef, KeyboardEvent } from 'react';
 import { X, Save, Sparkles, Send, RotateCcw } from 'lucide-react';
 import { useDefitStore } from '../store/useDefitStore';
 import { refineEntry } from '../lib/api';
-import type { Entry } from '../types';
+import { MEAL_CATEGORY_ORDER, MEAL_CATEGORY_LABELS } from '../lib/mealCategory';
+import type { Entry, MealCategory } from '../types';
 
 interface Props {
   entry: Entry;
@@ -15,6 +16,7 @@ interface FormState {
   carbs: string;
   protein: string;
   fat: string;
+  meal_category: MealCategory;
 }
 
 interface AiMessage {
@@ -22,13 +24,14 @@ interface AiMessage {
   text: string;
 }
 
-function toForm(e: { name: string; kcal: number; carbs: number; protein: number; fat: number }): FormState {
+function toForm(e: Entry): FormState {
   return {
     name: e.name,
     kcal: String(e.kcal),
     carbs: String(e.carbs),
     protein: String(e.protein),
     fat: String(e.fat),
+    meal_category: e.meal_category ?? 'fuori pasto',
   };
 }
 
@@ -107,7 +110,7 @@ export default function EditEntryModal({ entry, onClose }: Props) {
 
     setSaving(true);
     try {
-      await updateEntry(entry.id, { name, kcal, carbs, protein, fat });
+      await updateEntry(entry.id, { name, kcal, carbs, protein, fat, meal_category: form.meal_category });
       onClose();
     } finally {
       setSaving(false);
@@ -125,7 +128,8 @@ export default function EditEntryModal({ entry, onClose }: Props) {
     parseInt(form.kcal) !== entry.kcal ||
     parseInt(form.carbs) !== entry.carbs ||
     parseInt(form.protein) !== entry.protein ||
-    parseInt(form.fat) !== entry.fat;
+    parseInt(form.fat) !== entry.fat ||
+    form.meal_category !== (entry.meal_category ?? 'fuori pasto');
 
   return (
     <div
@@ -171,6 +175,22 @@ export default function EditEntryModal({ entry, onClose }: Props) {
               type="text"
               placeholder="es. Pasta al pomodoro"
             />
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Pasto
+              </label>
+              <select
+                value={form.meal_category}
+                onChange={(e) => handleChange('meal_category', e.target.value)}
+                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/20 transition-colors appearance-none"
+              >
+                {MEAL_CATEGORY_ORDER.map((cat) => (
+                  <option key={cat} value={cat} className="bg-zinc-900">
+                    {MEAL_CATEGORY_LABELS[cat]}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Field
               label="Calorie"
               value={form.kcal}

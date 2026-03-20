@@ -72,7 +72,7 @@ interface DefitState {
   addEntries: (type: EntryType, items: AnalysisItem[]) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   updateEntryCategory: (id: string, category: MealCategory) => Promise<void>;
-  updateEntry: (id: string, fields: { name: string; kcal: number; carbs: number; protein: number; fat: number }) => Promise<void>;
+  updateEntry: (id: string, fields: { name: string; kcal: number; carbs: number; protein: number; fat: number; meal_category?: MealCategory }) => Promise<void>;
   setSelectedDate: (date: string) => void;
   getRecord: (date: string) => DayRecord;
 }

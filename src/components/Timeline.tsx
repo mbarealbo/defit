@@ -6,6 +6,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
   type DragStartEvent,
   DragOverlay,
@@ -21,6 +22,22 @@ import type { Entry, MealCategory } from '../types';
 interface Props {
   date?: string;
   readOnly?: boolean;
+}
+
+function DroppableCategory({ id }: { id: string }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+  return (
+    <div
+      ref={setNodeRef}
+      className={`rounded-2xl border border-dashed py-4 text-center text-[11px] transition-colors ${
+        isOver
+          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+          : 'border-white/10 bg-white/[0.02] text-zinc-600'
+      }`}
+    >
+      {isOver ? 'Rilascia qui' : 'Trascina qui'}
+    </div>
+  );
 }
 
 export default function Timeline({ date, readOnly = false }: Props) {
@@ -71,7 +88,10 @@ export default function Timeline({ date, readOnly = false }: Props) {
     byCategory[cat].push(e);
   }
 
-  const orderedCategories = MEAL_CATEGORY_ORDER.filter((cat) => byCategory[cat]?.length > 0);
+  const populatedCategories = MEAL_CATEGORY_ORDER.filter((cat) => byCategory[cat]?.length > 0);
+  const orderedCategories = activeEntry
+    ? MEAL_CATEGORY_ORDER.filter((cat) => cat !== 'fuori pasto')
+    : populatedCategories;
 
   function handleDragStart(event: DragStartEvent) {
     const id = String(event.active.id);
@@ -116,7 +136,8 @@ export default function Timeline({ date, readOnly = false }: Props) {
       >
         <div className="space-y-5">
           {orderedCategories.map((cat) => {
-            const catEntries = byCategory[cat];
+            const catEntries = byCategory[cat] ?? [];
+            const isEmpty = catEntries.length === 0;
             const isFuoriPasto = cat === 'fuori pasto';
             const ids = catEntries.map((e) => e.id);
             const totalKcal = catEntries.reduce((s, e) => s + e.kcal, 0);
@@ -136,12 +157,14 @@ export default function Timeline({ date, readOnly = false }: Props) {
                       {MEAL_CATEGORY_LABELS[cat]}
                     </span>
                   </div>
-                  <span className={`text-[10px] tabular-nums font-medium ${isFuoriPasto ? 'text-red-500' : 'text-zinc-600'}`}>
-                    {totalKcal} kcal
-                  </span>
+                  {!isEmpty && (
+                    <span className={`text-[10px] tabular-nums font-medium ${isFuoriPasto ? 'text-red-500' : 'text-zinc-600'}`}>
+                      {totalKcal} kcal
+                    </span>
+                  )}
                 </div>
 
-                {isFuoriPasto && (
+                {isFuoriPasto && !isEmpty && (
                   <div className="mb-2 px-3 py-1.5 rounded-xl bg-red-950/30 border border-red-500/15">
                     <p className="text-[10px] text-red-400/70 leading-relaxed">
                       Stai mangiando fuori dai pasti principali. Trascina le voci nella categoria corretta se necessario.
@@ -149,19 +172,23 @@ export default function Timeline({ date, readOnly = false }: Props) {
                   </div>
                 )}
 
-                <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-                  <div className="space-y-2">
-                    {catEntries.map((entry) => (
-                      <SortableEntryCard
-                        key={entry.id}
-                        entry={entry}
-                        readOnly={readOnly}
-                        isFuoriPasto={isFuoriPasto}
-                        onEdit={setEditingEntry}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
+                {isEmpty ? (
+                  <DroppableCategory id={`category:${cat}`} />
+                ) : (
+                  <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2">
+                      {catEntries.map((entry) => (
+                        <SortableEntryCard
+                          key={entry.id}
+                          entry={entry}
+                          readOnly={readOnly}
+                          isFuoriPasto={isFuoriPasto}
+                          onEdit={setEditingEntry}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                )}
               </div>
             );
           })}
