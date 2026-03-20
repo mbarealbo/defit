@@ -30,7 +30,8 @@ export default function MultiRingDashboard({ record, date }: Props) {
 
   const [selectedMacroGoal, setSelectedMacroGoal] = useState<'min' | 'max'>('min');
 
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const isToday = date === today;
 
   const effectiveTDEE = (!isToday && record.tdeeSnapshot != null) ? record.tdeeSnapshot : tdee;

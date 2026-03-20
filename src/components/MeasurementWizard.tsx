@@ -66,7 +66,8 @@ export default function MeasurementWizard({ onClose, onSaved, latestMeasurement 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setError('Non autenticato'); setSaving(false); return; }
 
-    const today = new Date().toISOString().slice(0, 10);
+    const td = new Date();
+    const today = `${td.getFullYear()}-${String(td.getMonth() + 1).padStart(2, '0')}-${String(td.getDate()).padStart(2, '0')}`;
     const { error: err } = await supabase.from('measurements').insert({
       user_id: user.id,
       date: today,

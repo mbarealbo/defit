@@ -42,7 +42,8 @@ function DroppableCategory({ id }: { id: string }) {
 
 export default function Timeline({ date, readOnly = false }: Props) {
   const { loading, records, updateEntryCategory } = useDefitStore();
-  const today = new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   const targetDate = date ?? today;
   const record = records[targetDate];
   const entries = record?.entries ?? [];
