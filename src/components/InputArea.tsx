@@ -3,6 +3,9 @@ import { Camera, Send, Loader2, Utensils, Dumbbell, X, MessageCircle, RotateCcw,
 import { analyzeEntry, imageToBase64 } from '../lib/api';
 import { useDefitStore } from '../store/useDefitStore';
 import { MEAL_CATEGORY_ORDER, MEAL_CATEGORY_LABELS } from '../lib/mealCategory';
+import FoodAutocomplete from './FoodAutocomplete';
+import { enrichItems } from '../lib/openFoodFacts';
+import type { OFFProduct } from '../lib/openFoodFacts';
 import type { EntryType, MealCategory } from '../types';
 
 interface PendingContext {
@@ -20,10 +23,40 @@ export default function InputArea() {
   const [pendingContext, setPendingContext] = useState<PendingContext | null>(null);
   const [aiQuestion, setAiQuestion] = useState<string | null>(null);
   const [manualMode, setManualMode] = useState(false);
-  const [manualForm, setManualForm] = useState({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' as MealCategory | '' });
+  const [manualForm, setManualForm] = useState({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' as MealCategory | '', grams: '100' });
+  const [basePer100g, setBasePer100g] = useState<OFFProduct | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const addEntries = useDefitStore((s) => s.addEntries);
   const addManualEntry = useDefitStore((s) => s.addManualEntry);
+
+  function handleFoodSelect(product: OFFProduct) {
+    setBasePer100g(product);
+    const g = parseInt(manualForm.grams) || 100;
+    const ratio = g / 100;
+    setManualForm((f) => ({
+      ...f,
+      name: product.brand ? `${product.name} (${product.brand})` : product.name,
+      kcal: String(Math.round(product.kcal * ratio)),
+      carbs: String(Math.round(product.carbs * ratio)),
+      protein: String(Math.round(product.protein * ratio)),
+      fat: String(Math.round(product.fat * ratio)),
+    }));
+  }
+
+  function handleGramsChange(grams: string) {
+    setManualForm((f) => ({ ...f, grams }));
+    if (!basePer100g) return;
+    const g = parseInt(grams) || 0;
+    const ratio = g / 100;
+    setManualForm((f) => ({
+      ...f,
+      grams,
+      kcal: String(Math.round(basePer100g.kcal * ratio)),
+      carbs: String(Math.round(basePer100g.carbs * ratio)),
+      protein: String(Math.round(basePer100g.protein * ratio)),
+      fat: String(Math.round(basePer100g.fat * ratio)),
+    }));
+  }
 
   const isAwaitingReply = pendingContext !== null;
 
@@ -71,9 +104,11 @@ export default function InputArea() {
         setAiQuestion(res.message);
         setText('');
       } else if (res.status === 'success') {
-        const itemsToSave = res.items && res.items.length > 0
+        const rawItems = res.items && res.items.length > 0
           ? res.items
           : [{ name: pendingContext?.text ?? text.trim(), kcal: res.total_kcal ?? 0, carbs: 0, protein: 0, fat: 0 }];
+
+        const itemsToSave = type === 'food' ? await enrichItems(rawItems) : rawItems;
 
         await addEntries(type, itemsToSave);
         setText('');
@@ -141,13 +176,28 @@ export default function InputArea() {
               </button>
             </div>
             <div className="space-y-2">
-              <input
-                type="text"
+              <FoodAutocomplete
                 value={manualForm.name}
-                onChange={(e) => setManualForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Nome alimento"
-                className="w-full bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-2 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20"
+                onChange={(val) => {
+                  setManualForm((f) => ({ ...f, name: val }));
+                  if (basePer100g) setBasePer100g(null);
+                }}
+                onSelect={handleFoodSelect}
+                placeholder="Cerca o scrivi alimento..."
               />
+              {basePer100g && (
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] text-zinc-500 whitespace-nowrap">Quantita (g)</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={manualForm.grams}
+                    onChange={(e) => handleGramsChange(e.target.value)}
+                    className="flex-1 bg-white/[0.05] border border-white/[0.08] rounded-xl px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white/20"
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-4 gap-2">
                 <div>
                   <label className="text-[10px] text-zinc-600 mb-0.5 block">kcal</label>
@@ -188,7 +238,8 @@ export default function InputArea() {
                   setSending(true);
                   try {
                     await addManualEntry(type, { name, kcal, carbs, protein, fat }, category);
-                    setManualForm({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' });
+                    setManualForm({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '', grams: '100' });
+                    setBasePer100g(null);
                     setManualMode(false);
                   } finally {
                     setSending(false);
