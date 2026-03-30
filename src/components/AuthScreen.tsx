@@ -47,7 +47,7 @@ export default function AuthScreen() {
 
   if (mode === 'coming-soon') {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center px-5">
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center px-5 py-10">
         <div className="w-full max-w-sm flex flex-col items-center text-center gap-6">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
             <Zap className="w-6 h-6 text-emerald-400" />
@@ -55,12 +55,16 @@ export default function AuthScreen() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight mb-2">Defit</h1>
             <p className="text-zinc-400 text-sm leading-relaxed">
-              La registrazione non è ancora disponibile — il prodotto non è stato lanciato ufficialmente.
+              Il prodotto non e ancora stato lanciato ufficialmente. Puoi richiedere un invito per accedere alla beta.
             </p>
           </div>
+
+          <BetaInviteForm />
+
           <div className="w-full bg-zinc-900 border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3 text-left">
+            <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-1">Open source</p>
             <p className="text-sm text-zinc-300 leading-relaxed">
-              Defit è <span className="text-white font-semibold">open source</span>. Puoi clonarlo, usarlo in self-hosting con il tuo account Supabase e la tua chiave OpenAI, e contribuire allo sviluppo.
+              Defit e <span className="text-white font-semibold">open source</span>. Puoi clonarlo, usarlo in self-hosting con il tuo account Supabase e la tua chiave OpenAI, e contribuire allo sviluppo.
             </p>
             <a
               href="https://github.com/mbarealbo/defit"
@@ -69,14 +73,14 @@ export default function AuthScreen() {
               className="flex items-center gap-2.5 w-full justify-center bg-white/[0.06] hover:bg-white/[0.10] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
             >
               <Github className="w-4 h-4" />
-              Vedi su GitHub
+              Vedi su GitHub e contribuisci
             </a>
           </div>
           <button
             onClick={() => setMode('login')}
             className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            Hai già un account? Accedi
+            Hai gia un account? Accedi
           </button>
         </div>
       </div>
@@ -159,6 +163,49 @@ export default function AuthScreen() {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function BetaInviteForm() {
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [sent, setSent] = useState(false);
+
+  function handleRequest() {
+    if (!inviteEmail.trim()) return;
+    window.location.href = `mailto:mail@albo.work?subject=Richiesta%20accesso%20beta%20Defit&body=Ciao%2C%20vorrei%20accedere%20alla%20beta%20di%20Defit.%20La%20mia%20email%20e%3A%20${encodeURIComponent(inviteEmail.trim())}`;
+    setSent(true);
+  }
+
+  if (sent) {
+    return (
+      <div className="w-full flex items-start gap-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-3.5 py-3">
+        <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+        <p className="text-sm text-emerald-300 text-left">Richiesta inviata. Ti contatteremo presto.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full flex flex-col gap-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-zinc-500 text-left">Richiedi accesso beta</p>
+      <div className="relative">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+        <input
+          type="email"
+          value={inviteEmail}
+          onChange={(e) => setInviteEmail(e.target.value)}
+          placeholder="La tua email"
+          className="w-full bg-zinc-900 border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+        />
+      </div>
+      <button
+        onClick={handleRequest}
+        disabled={!inviteEmail.trim()}
+        className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed text-black font-semibold rounded-xl py-3 text-sm transition-colors"
+      >
+        Richiedi invito
+      </button>
     </div>
   );
 }
