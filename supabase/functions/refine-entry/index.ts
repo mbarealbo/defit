@@ -41,7 +41,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-pro";
+    const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-4.1";
 
     const { currentEntry, userPrompt } = (await req.json()) as RequestPayload;
 
