@@ -56,14 +56,6 @@ async function upsertSnapshot(
   );
 }
 
-export interface RecentMeal {
-  name: string;
-  kcal: number;
-  carbs: number;
-  protein: number;
-  fat: number;
-}
-
 interface DefitState {
   records: Record<string, DayRecord>;
   snapshots: Record<string, DailySnapshot>;
@@ -73,12 +65,10 @@ interface DefitState {
   tdee: number;
   minDeficit: number;
   maxDeficit: number;
-  recentMeals: RecentMeal[];
   setTDEE: (tdee: number) => void;
   setDeficitTargets: (min: number, max: number) => void;
   syncTodaySnapshot: (tdee: number, minDeficit: number, maxDeficit: number) => Promise<void>;
   fetchToday: () => Promise<void>;
-  fetchRecentMeals: () => Promise<void>;
   fetchMonth: (year: number, month: number) => Promise<void>;
   addEntries: (type: EntryType, items: AnalysisItem[]) => Promise<void>;
   addManualEntry: (type: EntryType, item: AnalysisItem, category?: MealCategory) => Promise<void>;
@@ -100,7 +90,6 @@ export const useDefitStore = create<DefitState>((set, get) => ({
   tdee: FALLBACK_TDEE,
   minDeficit: 0,
   maxDeficit: 0,
-  recentMeals: [],
 
   setTDEE: (tdee: number) => {
     set({ tdee });
@@ -187,29 +176,6 @@ export const useDefitStore = create<DefitState>((set, get) => ({
       snapshots: { ...s.snapshots, [today]: activeSnapshot },
       loading: false,
     }));
-  },
-
-  fetchRecentMeals: async () => {
-    const { data } = await supabase
-      .from('entries')
-      .select('name, kcal, carbs, protein, fat')
-      .eq('type', 'food')
-      .order('created_at', { ascending: false })
-      .limit(40);
-
-    if (!data) return;
-
-    const seen = new Set<string>();
-    const recent: RecentMeal[] = [];
-    for (const row of data) {
-      const key = row.name.toLowerCase();
-      if (!seen.has(key)) {
-        seen.add(key);
-        recent.push({ name: row.name, kcal: row.kcal, carbs: row.carbs, protein: row.protein, fat: row.fat });
-        if (recent.length === 4) break;
-      }
-    }
-    set({ recentMeals: recent });
   },
 
   fetchMonth: async (year: number, month: number) => {
