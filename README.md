@@ -1,16 +1,26 @@
 # Defit
 
-Defit è un'app web open source per il tracciamento del deficit calorico giornaliero. Registra pasti e allenamenti, calcola il deficit rispetto al tuo TDEE e monitora i progressi nel tempo.
+Defit e un'app web open source focalizzata su un'unica cosa: mostrarti il tuo **deficit calorico in tempo reale**, aggiornato a ogni pasto e allenamento che registri.
 
-## Funzionalità
+Niente grafici inutili, niente funzionalita superflue. Solo la risposta alla domanda che conta: *sto mangiando nel range giusto oggi?*
 
-- **Inserimento alimenti** — testo libero, foto o ricerca su OpenFoodFacts. L'AI stima calorie e macro (carboidrati, proteine, grassi).
-- **Inserimento workout** — registra le calorie bruciate.
-- **Dashboard** — anelli interattivi con il deficit del giorno in tempo reale.
-- **Timeline** — lista degli inserimenti con drag & drop e modifica inline.
-- **Calendario** — storico giornaliero del deficit.
-- **Misurazioni** — tracciamento peso e misure corporee.
-- **Profilo** — configurazione TDEE e obiettivi di deficit (min/max).
+### Come funziona
+
+Scrivi cosa hai mangiato in linguaggio naturale, scatta una foto del piatto, o cerca l'alimento. L'AI analizza l'input, stima calorie e macronutrienti, e aggiorna il deficit istantaneamente. Se la descrizione e ambigua ti chiede un chiarimento, altrimenti registra tutto in un colpo solo.
+
+L'obiettivo e ridurre al minimo il tempo che passi a tracciare, per concentrarti sull'obiettivo.
+
+## Funzionalita
+
+- **Inserimento AI** - descrivi il pasto a parole o con una foto. L'AI estrae calorie e macro senza che tu debba cercare nulla.
+- **Ricerca OpenFoodFacts** - per gli alimenti confezionati, ricerca per nome e seleziona la quantita in grammi.
+- **Inserimento manuale** - se preferisci inserire i valori a mano.
+- **Deficit in tempo reale** - la dashboard si aggiorna a ogni inserimento mostrando quanto sei lontano dal tuo obiettivo.
+- **Workout** - registra le calorie bruciate e vedi come cambia il deficit.
+- **Timeline** - lista degli inserimenti del giorno con drag & drop e modifica inline.
+- **Calendario** - storico giornaliero del deficit.
+- **Misurazioni** - tracciamento peso e misure corporee.
+- **Profilo** - configura TDEE e obiettivi di deficit minimo e massimo.
 
 ## Stack tecnico
 
