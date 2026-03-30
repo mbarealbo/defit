@@ -1,46 +1,75 @@
 # Defit
 
-Defit è un'app web per il tracciamento del deficit calorico giornaliero. Permette di registrare pasti e allenamenti, calcolare il deficit rispetto al proprio TDEE e monitorare i progressi nel tempo.
+Defit è un'app web open source per il tracciamento del deficit calorico giornaliero. Registra pasti e allenamenti, calcola il deficit rispetto al tuo TDEE e monitora i progressi nel tempo.
 
-## Funzionalità principali
+## Funzionalità
 
-- **Inserimento alimenti** — testo libero, foto o ricerca su OpenFoodFacts. L'AI analizza l'input e stima calorie e macronutrienti (carboidrati, proteine, grassi).
-- **Inserimento workout** — registra le calorie bruciate durante l'allenamento.
-- **Dashboard** — anelli interattivi che mostrano il deficit del giorno in tempo reale.
-- **Timeline** — lista degli inserimenti del giorno, con drag & drop per riordinare e possibilità di modifica.
-- **Calendario** — storico giornaliero con andamento del deficit nel tempo.
-- **Misurazioni** — tracciamento del peso corporeo e altre misure.
-- **Profilo** — configurazione di TDEE e obiettivi di deficit (min/max).
-- **Onboarding** — wizard iniziale per impostare i dati personali.
+- **Inserimento alimenti** — testo libero, foto o ricerca su OpenFoodFacts. L'AI stima calorie e macro (carboidrati, proteine, grassi).
+- **Inserimento workout** — registra le calorie bruciate.
+- **Dashboard** — anelli interattivi con il deficit del giorno in tempo reale.
+- **Timeline** — lista degli inserimenti con drag & drop e modifica inline.
+- **Calendario** — storico giornaliero del deficit.
+- **Misurazioni** — tracciamento peso e misure corporee.
+- **Profilo** — configurazione TDEE e obiettivi di deficit (min/max).
 
 ## Stack tecnico
 
-- **Frontend** — React + TypeScript + Vite
-- **Styling** — Tailwind CSS
+- **Frontend** — React + TypeScript + Vite + Tailwind CSS
 - **Stato** — Zustand
 - **Backend / Auth / DB** — Supabase (PostgreSQL + Edge Functions)
-- **AI** — OpenAI GPT-5.4-pro per l'analisi degli alimenti e il raffinamento delle voci
+- **AI** — OpenAI (modello configurabile via variabile d'ambiente)
 - **Dati nutrizionali** — OpenFoodFacts API
 
-## Variabili d'ambiente
+---
 
-Crea un file `.env` nella root del progetto:
+## Setup
+
+### 1. Crea un progetto Supabase
+
+Vai su [supabase.com](https://supabase.com), crea un nuovo progetto e copia l'URL e la chiave anonima.
+
+### 2. Configura le variabili d'ambiente
+
+Copia il file di esempio e compila i valori:
+
+```bash
+cp .env.example .env
+```
 
 ```
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 ```
 
-## Avvio in locale
+### 3. Aggiungi i secrets alle Edge Functions
+
+Nella dashboard Supabase → **Edge Functions → Secrets**, aggiungi:
+
+| Nome | Valore |
+|------|--------|
+| `OPENAI_API_KEY` | La tua chiave OpenAI da [platform.openai.com](https://platform.openai.com) |
+| `OPENAI_MODEL` | Il modello da usare (es. `gpt-5.4-pro`, `gpt-4.1`, `o3`). Default: `gpt-5.4-pro` |
+
+### 4. Deploya le Edge Functions
+
+```bash
+supabase functions deploy analyze-entry
+supabase functions deploy refine-entry
+```
+
+### 5. Avvia in locale
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Deploy delle Edge Functions
+---
 
-```bash
-supabase functions deploy analyze-entry
-supabase functions deploy refine-entry
-```
+## Contribuire
+
+Pull request benvenute. Apri una issue per discutere modifiche importanti prima di implementarle.
+
+## Licenza
+
+MIT

@@ -41,6 +41,8 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const model = Deno.env.get("OPENAI_MODEL") ?? "gpt-5.4-pro";
+
     const { currentEntry, userPrompt } = (await req.json()) as RequestPayload;
 
     if (!currentEntry || !userPrompt) {
@@ -68,7 +70,7 @@ Modifica richiesta: ${userPrompt}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-5.4-pro",
+        model: model,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
