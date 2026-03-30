@@ -68,7 +68,7 @@ Modifica richiesta: ${userPrompt}`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4.1",
+        model: "gpt-5.4-pro",
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: systemPrompt },
