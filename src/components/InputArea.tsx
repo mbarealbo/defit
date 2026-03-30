@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Send, Loader2, Utensils, Dumbbell, X, MessageCircle, RotateCcw, PenLine } from 'lucide-react';
+import { Camera, Send, Loader2, Utensils, Dumbbell, X, MessageCircle, RotateCcw, PenLine, Clock } from 'lucide-react';
 import { analyzeEntry, imageToBase64 } from '../lib/api';
 import { useDefitStore } from '../store/useDefitStore';
 import { MEAL_CATEGORY_ORDER, MEAL_CATEGORY_LABELS } from '../lib/mealCategory';
@@ -25,9 +25,28 @@ export default function InputArea() {
   const [manualMode, setManualMode] = useState(false);
   const [manualForm, setManualForm] = useState({ name: '', kcal: '', carbs: '', protein: '', fat: '', meal_category: '' as MealCategory | '', grams: '100' });
   const [basePer100g, setBasePer100g] = useState<OFFProduct | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const addEntries = useDefitStore((s) => s.addEntries);
   const addManualEntry = useDefitStore((s) => s.addManualEntry);
+  const recentMeals = useDefitStore((s) => s.recentMeals);
+  const fetchRecentMeals = useDefitStore((s) => s.fetchRecentMeals);
+
+  const suggestions = text.trim().length > 0
+    ? recentMeals.filter((m) => m.name.toLowerCase().includes(text.toLowerCase()))
+    : inputFocused && !isAwaitingReply && type === 'food'
+      ? recentMeals
+      : [];
+
+  async function addRecentMeal(meal: typeof recentMeals[0]) {
+    setSending(true);
+    try {
+      await addManualEntry('food', meal);
+      await fetchRecentMeals();
+    } finally {
+      setSending(false);
+    }
+  }
 
   function handleFoodSelect(product: OFFProduct) {
     setBasePer100g(product);
@@ -111,6 +130,7 @@ export default function InputArea() {
         const itemsToSave = type === 'food' ? await enrichItems(rawItems) : rawItems;
 
         await addEntries(type, itemsToSave);
+        if (type === 'food') fetchRecentMeals();
         setText('');
         clearImage();
         setPendingContext(null);
@@ -309,7 +329,24 @@ export default function InputArea() {
             </div>
           )}
 
-          <div className="flex items-end gap-2">
+          {suggestions.length > 0 && (
+          <div className="px-4 mb-2 flex flex-col gap-1">
+            {suggestions.map((meal) => (
+              <button
+                key={meal.name}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => addRecentMeal(meal)}
+                className="flex items-center gap-2.5 w-full text-left px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] transition-colors"
+              >
+                <Clock className="w-3.5 h-3.5 text-zinc-500 flex-shrink-0" />
+                <span className="flex-1 text-sm text-zinc-300 truncate">{meal.name}</span>
+                <span className="text-xs text-zinc-500 flex-shrink-0">{meal.kcal} kcal</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-end gap-2">
             <div className={`flex-1 flex items-end gap-2 rounded-2xl px-3 py-2.5 transition-colors border ${
               isAwaitingReply
                 ? 'bg-sky-500/[0.05] border-sky-500/20 focus-within:border-sky-500/40'
@@ -338,6 +375,8 @@ export default function InputArea() {
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setTimeout(() => setInputFocused(false), 150)}
                 placeholder={
                   isAwaitingReply
                     ? 'Rispondi all\'AI...'

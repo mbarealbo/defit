@@ -17,7 +17,7 @@ export default function App() {
   const { user, loading: authLoading } = useAuth();
   const { profile, profileLoading } = useProfile();
   const [tab, setTab] = useState<Tab>('home');
-  const { fetchToday, records, setTDEE, setDeficitTargets, syncTodaySnapshot } = useDefitStore();
+  const { fetchToday, fetchRecentMeals, records, setTDEE, setDeficitTargets, syncTodaySnapshot } = useDefitStore();
   const today = todayStr();
   const initialFetchDone = useRef(false);
 
@@ -32,6 +32,7 @@ export default function App() {
       setDeficitTargets(minDef, maxDef);
       if (user) {
         fetchToday();
+        fetchRecentMeals();
         initialFetchDone.current = true;
       }
     } else {
