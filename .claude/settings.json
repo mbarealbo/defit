@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(node -e \"require\\(''dotenv''\\).config\\(\\); console.log\\(''URL:'', process.env.VITE_SUPABASE_URL ? ''presente'' : ''MANCANTE''\\); console.log\\(''KEY:'', process.env.VITE_SUPABASE_ANON_KEY ? ''presente'' : ''MANCANTE''\\);\")"
+    ]
+  }
+}
