@@ -133,7 +133,7 @@ export default function InputArea() {
 
   return (
     <div className="fixed inset-x-0 z-40" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom, 0px))' }}>
-      <div className="bg-gradient-to-t from-zinc-950 via-zinc-950/98 via-60% to-transparent pt-10 pb-2">
+      <div className="bg-gradient-to-t from-zinc-950/95 via-zinc-950/80 via-60% to-transparent pt-10 pb-2 backdrop-blur-sm">
 
         {isAwaitingReply && aiQuestion && (
           <div className="mx-4 mb-3">
