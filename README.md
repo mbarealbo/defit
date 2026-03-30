@@ -48,7 +48,9 @@ Nella dashboard Supabase → **Edge Functions → Secrets**, aggiungi:
 | Nome | Valore |
 |------|--------|
 | `OPENAI_API_KEY` | La tua chiave OpenAI da [platform.openai.com](https://platform.openai.com) |
-| `OPENAI_MODEL` | Il modello da usare (es. `gpt-5.4-pro`, `gpt-4.1`, `o3`). Default: `gpt-5.4-pro` |
+| `OPENAI_MODEL` | Il modello da usare (es. `gpt-4.1`, `o3`). Default: `gpt-4.1` |
+
+> **Nota:** al momento il progetto supporta solo OpenAI come provider AI. Il supporto ad altri provider (Anthropic, Google, ecc.) potrebbe essere aggiunto in futuro tramite contributi della community.
 
 ### 4. Deploya le Edge Functions
 
