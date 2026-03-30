@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Zap, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Zap, Mail, Lock, AlertCircle, CheckCircle, Github } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-type Mode = 'login' | 'register';
+type Mode = 'login' | 'register' | 'coming-soon';
 
 export default function AuthScreen() {
   const { signIn, signUp } = useAuth();
@@ -45,6 +45,44 @@ export default function AuthScreen() {
     setLoading(false);
   };
 
+  if (mode === 'coming-soon') {
+    return (
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center px-5">
+        <div className="w-full max-w-sm flex flex-col items-center text-center gap-6">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+            <Zap className="w-6 h-6 text-emerald-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight mb-2">Defit</h1>
+            <p className="text-zinc-400 text-sm leading-relaxed">
+              La registrazione non è ancora disponibile — il prodotto non è stato lanciato ufficialmente.
+            </p>
+          </div>
+          <div className="w-full bg-zinc-900 border border-white/[0.08] rounded-2xl p-5 flex flex-col gap-3 text-left">
+            <p className="text-sm text-zinc-300 leading-relaxed">
+              Defit è <span className="text-white font-semibold">open source</span>. Puoi clonarlo, usarlo in self-hosting con il tuo account Supabase e la tua chiave OpenAI, e contribuire allo sviluppo.
+            </p>
+            <a
+              href="https://github.com/mbarealbo/defit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 w-full justify-center bg-white/[0.06] hover:bg-white/[0.10] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-semibold transition-colors"
+            >
+              <Github className="w-4 h-4" />
+              Vedi su GitHub
+            </a>
+          </div>
+          <button
+            onClick={() => setMode('login')}
+            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Hai già un account? Accedi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center px-5">
       <div className="w-full max-w-sm">
@@ -54,9 +92,7 @@ export default function AuthScreen() {
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-bold tracking-tight">Defit</h1>
-            <p className="text-sm text-zinc-500 mt-1">
-              {mode === 'login' ? 'Accedi al tuo account' : 'Crea un nuovo account'}
-            </p>
+            <p className="text-sm text-zinc-500 mt-1">Accedi al tuo account</p>
           </div>
         </div>
 
@@ -110,18 +146,16 @@ export default function AuthScreen() {
             disabled={loading}
             className="mt-1 w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:cursor-not-allowed text-black font-semibold rounded-xl py-3 text-sm transition-colors"
           >
-            {loading ? 'Attendere...' : mode === 'login' ? 'Accedi' : 'Crea account'}
+            {loading ? 'Attendere...' : 'Accedi'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <button
-            onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(null); setSuccess(null); }}
+            onClick={() => { setMode(mode === 'login' ? 'coming-soon' : 'login'); setError(null); setSuccess(null); }}
             className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
           >
-            {mode === 'login'
-              ? "Non hai un account? Registrati"
-              : 'Hai gia un account? Accedi'}
+            {mode === 'login' ? "Non hai un account? Registrati" : 'Hai già un account? Accedi'}
           </button>
         </div>
       </div>
